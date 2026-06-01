@@ -1,0 +1,15 @@
+Voice Input
+   ↓
+Wake Word Engine
+   ↓
+Speech to Text
+   ↓
+AI Brain (GPT)
+   ↓
+Tool Selector (Decision Layer)
+   ↓
+Action Executor (Python tools)
+   ↓
+Memory Store (JSON / DB)
+   ↓
+Voice Output

@@ -1,0 +1,13 @@
+User Request
+    ↓
+Planner Agent (breaks task into steps)
+    ↓
+Tool Selector (decides actions)
+    ↓
+Executor (runs system commands)
+    ↓
+Memory System (stores context)
+    ↓
+Reflection (checks if task is complete)
+    ↓
+Final Response

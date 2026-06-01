@@ -1,0 +1,7 @@
+pip install openai
+pip install pyautogui
+pip install requests
+pip install beautifulsoup4
+pip install wikipedia
+pip install langchain
+pip install json5

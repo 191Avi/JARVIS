@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+openai
+requests
+pyttsx3
+SpeechRecognition
+wikipedia
+beautifulsoup4
+pyautogui
