@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JARVIS — AI Assistant System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --cyan:   #00e5ff;
+      --blue:   #1565c0;
+      --dark:   #020a18;
+      --panel:  #040f24;
+      --border: #0d2545;
+      --glow:   0 0 18px #00e5ff55;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark);
+      color: #c8e6f5;
+      font-family: 'Share Tech Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    /* ── SCANLINE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,229,255,0.015) 2px, rgba(0,229,255,0.015) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 40px 20px;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, #0d2a5033 0%, transparent 70%);
+    }
+
+    /* Animated rings */
+    .rings {
+      position: absolute;
+      width: 600px; height: 600px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .ring {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.15);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse-ring 4s ease-in-out infinite;
+    }
+    .ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+    .ring:nth-child(2) { width: 340px; height: 340px; animation-delay: 0.6s; }
+    .ring:nth-child(3) { width: 480px; height: 480px; animation-delay: 1.2s; }
+    .ring:nth-child(4) { width: 620px; height: 620px; animation-delay: 1.8s; }
+    @keyframes pulse-ring {
+      0%,100% { opacity: 0.15; transform: translate(-50%,-50%) scale(1); }
+      50%      { opacity: 0.4;  transform: translate(-50%,-50%) scale(1.03); }
+    }
+
+    /* Core orb */
+    .orb {
+      position: relative; z-index: 2;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #00e5ff33, #0d2a5088);
+      border: 2px solid var(--cyan);
+      box-shadow: var(--glow), inset 0 0 40px #00e5ff22;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; font-weight: 900;
+      color: var(--cyan);
+      text-shadow: 0 0 20px var(--cyan);
+      margin-bottom: 32px;
+      animation: orb-breathe 3s ease-in-out infinite;
+    }
+    @keyframes orb-breathe {
+      0%,100% { box-shadow: var(--glow), inset 0 0 40px #00e5ff22; }
+      50%      { box-shadow: 0 0 40px #00e5ffaa, inset 0 0 60px #00e5ff44; }
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 900;
+      color: var(--cyan);
+      text-shadow: 0 0 30px var(--cyan);
+      letter-spacing: 0.2em;
+      position: relative; z-index: 2;
+    }
+    .hero .subtitle {
+      font-size: clamp(0.8rem, 2vw, 1rem);
+      color: #78c8e0;
+      letter-spacing: 0.3em;
+      margin: 12px 0 40px;
+      position: relative; z-index: 2;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+      position: relative; z-index: 2;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--cyan);
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+    }
+    .stat .val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem;
+      color: var(--cyan);
+      text-shadow: 0 0 12px var(--cyan);
+    }
+    .stat .lbl { font-size: 0.65rem; color: #4a8fa8; letter-spacing: 0.2em; margin-top: 4px; }
+
+    /* Scroll hint */
+    .scroll-hint {
+      position: absolute; bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      color: #2a6a88; font-size: 0.75rem; letter-spacing: 0.2em;
+      animation: bounce 2s infinite;
+      z-index: 2;
+    }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+    /* ── SECTION COMMON ── */
+    section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      color: var(--cyan);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .section-heading {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: #e0f4ff;
+      margin-bottom: 48px;
+    }
+
+    /* ── VERSION CARDS ── */
+    .versions { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+    .v-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--cyan);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: default;
+    }
+    .v-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--glow);
+      border-left-color: var(--cyan);
+    }
+    .v-card::before {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 80px; height: 80px;
+      background: radial-gradient(circle at top right, #00e5ff0a, transparent 70%);
+    }
+    .v-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      color: var(--cyan);
+      letter-spacing: 0.3em;
+      margin-bottom: 8px;
+    }
+    .v-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      color: #e0f4ff;
+      margin-bottom: 16px;
+    }
+    .v-desc { font-size: 0.82rem; color: #7aacbf; line-height: 1.7; margin-bottom: 16px; }
+    .v-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: #0a1e38;
+      border: 1px solid #0d3a5f;
+      color: #4db8d8;
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── ARCHITECTURE ── */
+    .arch-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 40px;
+      font-size: 0.82rem;
+      line-height: 2;
+      color: #7aacbf;
+    }
+    .arch-box .highlight { color: var(--cyan); font-family: 'Orbitron', sans-serif; font-size: 0.78rem; }
+    .arch-box .arrow { color: #1e5c7a; }
+    .arch-center { text-align: center; }
+
+    /* ── TECH STACK ── */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .stack-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 6px;
+      transition: border-color 0.3s;
+    }
+    .stack-item:hover { border-color: var(--cyan); }
+    .stack-name { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: #e0f4ff; }
+    .stack-use  { font-size: 0.72rem; color: #4a8fa8; }
+
+    /* ── WAVEFORM ── */
+    .waveform {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; height: 48px; margin: 40px auto;
+    }
+    .wave-bar {
+      width: 4px;
+      background: var(--cyan);
+      border-radius: 2px;
+      animation: wave 1.2s ease-in-out infinite;
+      box-shadow: 0 0 6px var(--cyan);
+    }
+    .wave-bar:nth-child(1)  { animation-delay: 0.0s; }
+    .wave-bar:nth-child(2)  { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3)  { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4)  { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5)  { animation-delay: 0.4s; }
+    .wave-bar:nth-child(6)  { animation-delay: 0.5s; }
+    .wave-bar:nth-child(7)  { animation-delay: 0.4s; }
+    .wave-bar:nth-child(8)  { animation-delay: 0.3s; }
+    .wave-bar:nth-child(9)  { animation-delay: 0.2s; }
+    .wave-bar:nth-child(10) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(11) { animation-delay: 0.0s; }
+    @keyframes wave {
+      0%,100% { height: 8px;  }
+      50%      { height: 40px; }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      color: #2a6a88;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+    }
+    footer span { color: var(--cyan); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── TYPING ANIMATION ── */
+    .typing {
+      overflow: hidden;
+      border-right: 2px solid var(--cyan);
+      white-space: nowrap;
+      animation: typing 3s steps(40,end), blink 0.75s step-end infinite;
+      display: inline-block;
+      max-width: 100%;
+    }
+    @keyframes typing { from{width:0} to{width:100%} }
+    @keyframes blink { 50%{border-color:transparent} }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="rings">
+    <div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div>
+  </div>
+  <div class="orb">J</div>
+  <h1>JARVIS</h1>
+  <p class="subtitle">JUST A RATHER VERY INTELLIGENT SYSTEM</p>
+
+  <div class="status-bar">
+    <div class="stat"><div class="val">6</div><div class="lbl">VERSIONS</div></div>
+    <div class="stat"><div class="val">38</div><div class="lbl">FILES</div></div>
+    <div class="stat"><div class="val">5</div><div class="lbl">AI AGENTS</div></div>
+    <div class="stat"><div class="val">v6</div><div class="lbl">PRODUCTION</div></div>
+  </div>
+  <div class="scroll-hint">▼ SCROLL TO EXPLORE ▼</div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ══════════════════ WAVEFORM ══════════════════ -->
+<div class="waveform">
+  <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+  <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+  <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+  <div class="wave-bar"></div><div class="wave-bar"></div>
+</div>
+
+<!-- ══════════════════ VERSIONS ══════════════════ -->
+<section>
+  <div class="section-title">// EVOLUTION</div>
+  <div class="section-heading">System Version History</div>
+  <div class="versions">
+
+    <div class="v-card">
+      <div class="v-num">VERSION 01</div>
+      <div class="v-name">Basic Voice Assistant</div>
+      <div class="v-desc">The origin. Voice input via microphone, text-to-speech output, basic commands like time, Wikipedia search, and browser control.</div>
+      <div class="v-tags">
+        <span class="tag">SPEECH RECOGNITION</span>
+        <span class="tag">PYTTSX3</span>
+        <span class="tag">WIKIPEDIA</span>
+      </div>
+    </div>
+
+    <div class="v-card">
+      <div class="v-num">VERSION 02</div>
+      <div class="v-name">Smart AI Assistant</div>
+      <div class="v-desc">OpenAI brain integrated. Unknown commands routed to GPT-4o-mini for intelligent answers. Wake word detection added.</div>
+      <div class="v-tags">
+        <span class="tag">OPENAI GPT</span>
+        <span class="tag">WAKE WORD</span>
+        <span class="tag">AI BRAIN</span>
+      </div>
+    </div>
+
+    <div class="v-card">
+      <div class="v-num">VERSION 03</div>
+      <div class="v-name">Real JARVIS — Agent Architecture</div>
+      <div class="v-desc">Fully modular. Separate engine, tools, wake detection, and memory modules. AI decides which tool to use for each command.</div>
+      <div class="v-tags">
+        <span class="tag">MODULAR</span>
+        <span class="tag">TOOL ENGINE</span>
+        <span class="tag">MEMORY</span>
+      </div>
+    </div>
+
+    <div class="v-card">
+      <div class="v-num">VERSION 04</div>
+      <div class="v-name">Autonomous AI Agent</div>
+      <div class="v-desc">Full autonomy. AI plans multi-step tasks, chooses the right tool for each step, executes them in sequence, and saves history.</div>
+      <div class="v-tags">
+        <span class="tag">AUTONOMOUS</span>
+        <span class="tag">PLANNER</span>
+        <span class="tag">EXECUTOR</span>
+      </div>
+    </div>
+
+    <div class="v-card">
+      <div class="v-num">VERSION 05</div>
+      <div class="v-name">Multi-Agent AI System</div>
+      <div class="v-desc">Five specialized agents working together. Manager assigns roles. Planner, Researcher, Executor, and Critic each handle their domain.</div>
+      <div class="v-tags">
+        <span class="tag">MANAGER AGENT</span>
+        <span class="tag">RESEARCH</span>
+        <span class="tag">CRITIC</span>
+      </div>
+    </div>
+
+    <div class="v-card">
+      <div class="v-num">VERSION 06</div>
+      <div class="v-name">Production AI Platform</div>
+      <div class="v-desc">Cloud-ready FastAPI backend, SQLite long-term memory, browser dashboard with voice input, tool registry, and full REST API.</div>
+      <div class="v-tags">
+        <span class="tag">FASTAPI</span>
+        <span class="tag">SQLITE</span>
+        <span class="tag">REST API</span>
+        <span class="tag">DASHBOARD</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ══════════════════ ARCHITECTURE ══════════════════ -->
+<section>
+  <div class="section-title">// ARCHITECTURE</div>
+  <div class="section-heading">Version 6 System Design</div>
+  <div class="arch-box arch-center">
+    <div><span class="highlight">🎙️  VOICE / CHAT UI</span>  <span style="font-size:0.7rem">(browser dashboard + voice client)</span></div>
+    <div class="arrow">│</div>
+    <div><span class="highlight">🌐  API GATEWAY</span>  <span style="font-size:0.7rem">(FastAPI — localhost:8000)</span></div>
+    <div class="arrow">│</div>
+    <div><span class="highlight">🧠  AI BRAIN</span>  <span style="font-size:0.7rem">(OpenAI GPT-4o-mini + tool routing)</span></div>
+    <div class="arrow">┌──────────┼──────────┐</div>
+    <div style="display:flex;justify-content:center;gap:60px">
+      <span class="highlight">🛠️ TOOLS</span>
+      <span class="highlight">💾 SQLITE</span>
+      <span class="highlight">🌍 WEB</span>
+    </div>
+    <div class="arrow">│</div>
+    <div style="color:#2a6a88;font-size:0.75rem">youtube · google · notepad · wikipedia · screenshot</div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ══════════════════ TECH STACK ══════════════════ -->
+<section>
+  <div class="section-title">// TECHNOLOGY</div>
+  <div class="section-heading">Full Tech Stack</div>
+  <div class="stack-grid">
+    <div class="stack-item"><div class="stack-name">Python 3.14</div><div class="stack-use">Core language</div></div>
+    <div class="stack-item"><div class="stack-name">OpenAI API</div><div class="stack-use">GPT-4o-mini brain</div></div>
+    <div class="stack-item"><div class="stack-name">FastAPI</div><div class="stack-use">Production backend</div></div>
+    <div class="stack-item"><div class="stack-name">SQLite</div><div class="stack-use">Long-term memory</div></div>
+    <div class="stack-item"><div class="stack-name">SpeechRecognition</div><div class="stack-use">Voice input</div></div>
+    <div class="stack-item"><div class="stack-name">pyttsx3</div><div class="stack-use">Text-to-speech</div></div>
+    <div class="stack-item"><div class="stack-name">Wikipedia API</div><div class="stack-use">Knowledge lookup</div></div>
+    <div class="stack-item"><div class="stack-name">BeautifulSoup4</div><div class="stack-use">Web research</div></div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer>
+  <p>JARVIS AI SYSTEM &nbsp;|&nbsp; <span>github.com/191Avi/JARVIS</span></p>
+  <p style="margin-top:8px">Built with Python · OpenAI · FastAPI</p>
+</footer>
+
+</body>
+</html>
