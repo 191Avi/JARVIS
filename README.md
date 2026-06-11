@@ -269,7 +269,19 @@ JARVIS/
 │   ├── run_backend.bat
 │   ├── run_client.bat
 │   └── run_frontend.bat
-├── VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip   ← packaged build (see v7)
+├── VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN)/
+│   ├── backend/
+│   │   ├── main.py         ← FastAPI server (function calling, SSE)
+│   │   ├── tools.py        ← tool registry + schemas
+│   │   └── memory.py       ← SQLite memory + rolling context
+│   ├── client/client.py    ← voice/text client
+│   ├── frontend/index.html ← web UI (served at /ui)
+│   ├── requirements.txt
+│   ├── .env.example
+│   ├── install.bat
+│   ├── install_voice.bat
+│   ├── run_backend.bat
+│   └── run_client.bat
 ├── jarvis_showcase.html    ← visual showcase page
 ├── AGENTS.md
 └── README.md
