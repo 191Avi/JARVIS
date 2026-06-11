@@ -208,7 +208,7 @@ run_frontend.bat
 
 > **"The brain rewires itself"** — the assistant decides when to use tools.
 
-The next-generation platform. JARVIS now uses **OpenAI function calling** to choose tools on its own, streams responses token-by-token over **Server-Sent Events**, keeps a rolling conversation context in SQLite, and serves a built-in web UI. The full project ships as `VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip`.
+The next-generation platform. JARVIS now uses **OpenAI function calling** to choose tools on its own, streams responses token-by-token over **Server-Sent Events**, keeps a rolling conversation context in SQLite, and serves a built-in web UI. The full project lives in the `VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN)/` folder.
 
 **New in v7:**
 - 🧠 OpenAI function calling (model-driven tool selection)
@@ -219,7 +219,7 @@ The next-generation platform. JARVIS now uses **OpenAI function calling** to cho
 - 🔐 No bundled keys — bring your own in a local `.env`
 
 ```bash
-# Unzip "VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip", then:
+# cd into "VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN)", then:
 install.bat                 # install dependencies
 copy .env.example .env      # then add your own OPENAI key
 run_backend.bat             # start the server
