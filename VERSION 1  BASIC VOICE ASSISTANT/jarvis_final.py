@@ -193,7 +193,6 @@ def jarvis():
     print("            stop / exit / shutdown\n")
 
     while True:
-        global pending_command
         print("Waiting for wake word ('Hey Jarvis')...")
 
         if not listen_for_wake():
