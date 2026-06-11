@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local data
+*.db
+reminders.json
+screenshot_*.png
+
+# OS
+.DS_Store
+Thumbs.db
