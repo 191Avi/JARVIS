@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS v7</title>
+<style>
+  :root {
+    --bg:       #0a0e1a;
+    --surface:  #111827;
+    --border:   #1e2d45;
+    --accent:   #00aaff;
+    --accent2:  #0066cc;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --user-bg:  #1a2744;
+    --ai-bg:    #0f1a2e;
+    --tool-bg:  #0a1f0a;
+    --tool-col: #22c55e;
+    --danger:   #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(0,170,255,0.5);
+  }
+  .version-badge {
+    font-size: 11px;
+    background: var(--accent2);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-left: auto;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulse 2s infinite;
+  }
+  .status-dot.offline { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  #status-text { font-size: 12px; color: var(--muted); }
+
+  /* ── Main layout ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  aside h3 {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 16px 8px;
+  }
+  .tool-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: default;
+  }
+  .tool-chip .dot { width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0; }
+  .sidebar-stats {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* ── Chat area ── */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+    gap: 4px;
+    animation: fadein .2s ease;
+  }
+  @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.ai   { align-self: flex-start; align-items: flex-start; }
+
+  .bubble {
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user .bubble { background: var(--user-bg); border: 1px solid var(--border); border-bottom-right-radius: 4px; }
+  .msg.ai   .bubble { background: var(--ai-bg);   border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+  .tool-badge {
+    font-size: 11px;
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-col);
+    color: var(--tool-col);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 0 4px;
+  }
+
+  /* Typing indicator */
+  .typing .bubble {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 18px;
+  }
+  .typing .dot-anim {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    animation: bounce .8s infinite;
+  }
+  .typing .dot-anim:nth-child(2){animation-delay:.15s}
+  .typing .dot-anim:nth-child(3){animation-delay:.30s}
+  @keyframes bounce{0%,80%,100%{transform:scale(.8)}40%{transform:scale(1.2)}}
+
+  /* ── Input bar ── */
+  footer {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  #input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    resize: none;
+    height: 46px;
+    font-family: inherit;
+  }
+  #input:focus { border-color: var(--accent); }
+  #input::placeholder { color: var(--muted); }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  button:hover  { background: #0090e0; }
+  button:active { transform: scale(.97); }
+  button:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+  #clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0 14px;
+    font-size: 13px;
+  }
+  #clear-btn:hover { border-color: var(--danger); color: var(--danger); background: transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">JARVIS</span>
+  <span class="version-badge">v7</span>
+  <span id="status-text">Connecting...</span>
+  <div class="status-dot offline" id="dot"></div>
+</header>
+
+<div class="main">
+  <aside>
+    <h3>Available Tools</h3>
+    <div id="tool-list"></div>
+    <div class="sidebar-stats" id="stats-panel">Loading stats...</div>
+  </aside>
+
+  <div id="chat"></div>
+</div>
+
+<footer>
+  <textarea id="input" placeholder="Ask JARVIS anything..." rows="1"></textarea>
+  <button id="send-btn" onclick="sendMessage()">Send</button>
+  <button id="clear-btn" onclick="clearChat()" title="Clear history">🗑</button>
+</footer>
+
+<script>
+const API = 'http://localhost:8000';
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+
+// ── Helpers ──
+function now() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function addMessage(role, text, toolUsed = null) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+
+  if (toolUsed) {
+    const badge = document.createElement('span');
+    badge.className = 'tool-badge';
+    badge.textContent = `⚡ ${toolUsed}`;
+    wrap.appendChild(badge);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+
+  const time = document.createElement('span');
+  time.className = 'msg-time';
+  time.textContent = now();
+  wrap.appendChild(time);
+
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function addTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ai typing';
+  wrap.id = 'typing-indicator';
+  wrap.innerHTML = `<div class="bubble"><div class="dot-anim"></div><div class="dot-anim"></div><div class="dot-anim"></div></div>`;
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap;
+}
+
+// ── Send message ──
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = '46px';
+  sendBtn.disabled = true;
+
+  addMessage('user', text);
+  const typing = addTyping();
+
+  try {
+    const res = await fetch(`${API}/chat/stream`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: text})
+    });
+
+    typing.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ai';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = '';
+    wrap.appendChild(bubble);
+    const timeEl = document.createElement('span');
+    timeEl.className = 'msg-time';
+    timeEl.textContent = now();
+    wrap.appendChild(timeEl);
+    chat.appendChild(wrap);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let toolUsed = null;
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = JSON.parse(line.slice(6));
+
+        if (data.type === 'tool') {
+          toolUsed = data.tool;
+          const badge = document.createElement('span');
+          badge.className = 'tool-badge';
+          const args = Object.entries(data.args || {}).map(([k,v])=>`${k}=${v}`).join(', ');
+          badge.textContent = `⚡ ${data.tool}${args ? `(${args})` : ''}`;
+          wrap.insertBefore(badge, bubble);
+        }
+        if (data.type === 'token') {
+          bubble.textContent += data.content;
+          chat.scrollTop = chat.scrollHeight;
+        }
+        if (data.type === 'done') {
+          loadStats();
+        }
+        if (data.type === 'error') {
+          bubble.textContent = `Error: ${data.message}`;
+          bubble.style.color = '#ef4444';
+        }
+      }
+    }
+
+  } catch (err) {
+    typing.remove();
+    addMessage('ai', `Connection error: ${err.message}`);
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+// ── Clear history ──
+async function clearChat() {
+  if (!confirm('Clear all conversation history?')) return;
+  await fetch(`${API}/clear`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({confirm: true})
+  });
+  chat.innerHTML = '';
+  addMessage('ai', 'History cleared. Fresh start.');
+  loadStats();
+}
+
+// ── Load tools sidebar ──
+async function loadTools() {
+  try {
+    const res = await fetch(`${API}/tools`);
+    const data = await res.json();
+    const list = document.getElementById('tool-list');
+    list.innerHTML = data.tools.map(t =>
+      `<div class="tool-chip"><span class="dot"></span>${t.name}</div>`
+    ).join('');
+  } catch {}
+}
+
+// ── Load stats ──
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+    const panel = document.getElementById('stats-panel');
+    const toolLines = Object.entries(data.tool_usage || {})
+      .map(([k,v]) => `${k}: ${v}×`).join('<br>');
+    panel.innerHTML = `<b>Total:</b> ${data.total_interactions} chats<br>${toolLines}`;
+  } catch {}
+}
+
+// ── Health check ──
+async function checkHealth() {
+  const dot  = document.getElementById('dot');
+  const stat = document.getElementById('status-text');
+  try {
+    const res  = await fetch(`${API}/health`, {signal: AbortSignal.timeout(3000)});
+    const data = await res.json();
+    dot.classList.remove('offline');
+    stat.textContent = `Online · v${data.version}`;
+  } catch {
+    dot.classList.add('offline');
+    stat.textContent = 'Backend offline';
+  }
+}
+
+// ── Enter to send ──
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ── Auto-resize textarea ──
+input.addEventListener('input', () => {
+  input.style.height = '46px';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+});
+
+// ── Load history on start ──
+async function loadHistory() {
+  try {
+    const res = await fetch(`${API}/history?limit=20`);
+    const data = await res.json();
+    for (const item of [...data.history].reverse()) {
+      addMessage('user', item.input);
+      addMessage('ai', item.response || '', item.tool);
+    }
+  } catch {}
+}
+
+// ── Init ──
+checkHealth();
+setInterval(checkHealth, 10000);
+loadTools();
+loadStats();
+loadHistory();
+</script>
+</body>
+</html>
