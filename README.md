@@ -2,7 +2,7 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,100:16213e&height=200&section=header&text=JARVIS&fontSize=80&fontColor=00d4ff&fontAlignY=38&desc=Just%20A%20Rather%20Very%20Intelligent%20System&descAlignY=60&descColor=ffffff&animation=fadeIn" width="100%"/>
 
-[![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Production-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
@@ -32,6 +32,7 @@ Each version is a complete, standalone project that introduces new concepts, pat
 | [v4](#v4--autonomous-ai-agent) | Autonomous AI Agent | Multi-step task planning & execution |
 | [v5](#v5--multi-agent-ai-system) | Multi-Agent AI System | Manager → Planner / Research / Executor / Critic |
 | [v6](#v6--production-ai-platform) | Production AI Platform | FastAPI backend, SQLite memory, browser dashboard |
+| [v7](#v7--intelligent-ai-platform) | Intelligent AI Platform | OpenAI function calling, streaming (SSE), web UI, persistent memory |
 
 ---
 
@@ -118,8 +119,8 @@ JARVIS can now plan and execute multi-step tasks autonomously. Given a complex g
 - 📊 Execution logging
 
 ```bash
-cd "VERSION 4 AUTONOMOUS AI AGENT SYSTEM"
-python planner.py
+cd "VERSION 4  AUTONOMOUS AI AGENT SYSTEM"
+python tools.py
 ```
 
 ---
@@ -203,47 +204,73 @@ run_frontend.bat
 
 ---
 
+### v7 — Intelligent AI Platform
+
+> **"The brain rewires itself"** — the assistant decides when to use tools.
+
+The next-generation platform. JARVIS now uses **OpenAI function calling** to choose tools on its own, streams responses token-by-token over **Server-Sent Events**, keeps a rolling conversation context in SQLite, and serves a built-in web UI. The full project ships as `VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip`.
+
+**New in v7:**
+- 🧠 OpenAI function calling (model-driven tool selection)
+- ⚡ Streaming responses via Server-Sent Events (SSE)
+- 🗂️ Persistent memory with rolling conversation context
+- 🖥️ Built-in web UI served at `/ui`
+- 🛠️ Expanded tools: Google, Wikipedia, weather, reminders, screenshots, open files/apps, time
+- 🔐 No bundled keys — bring your own in a local `.env`
+
+```bash
+# Unzip "VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip", then:
+install.bat                 # install dependencies
+copy .env.example .env      # then add your own OPENAI key
+run_backend.bat             # start the server
+```
+
+Web UI at: `http://localhost:8000/ui` — or run `run_client.bat` for the voice/text client.
+
+---
+
 ## 🗂️ Project Structure
 
 ```
 JARVIS/
-├── VERSION 1 BASIC VOICE ASSISTANT/
+├── VERSION 1  BASIC VOICE ASSISTANT/
 │   ├── jarvis.py
-│   └── jarvis_final.py
+│   ├── jarvis_final.py
+│   └── run_jarvis.bat
 ├── VERSION 2 SMART AI ASSISTANT (JARVIS UPGRADE)/
-│   └── jarvis_v2.py
-├── VERSION 3 REAL JARVIS SYSTEM/
-│   ├── AI BRAIN (TOOL DECISION ENGINE)/engine.py
-│   ├── MAIN JARVIS LOOP/jarvis_v3.py
-│   ├── MEMORY SYSTEM/memory.py
-│   ├── TOOL SYSTEM/tools.py
-│   └── WAKE WORD SYSTEM/detection.py
-├── VERSION 4 AUTONOMOUS AI AGENT SYSTEM/
+│   ├── jarvis_v2.py
+│   └── VERSION 3 REAL JARVIS SYSTEM (AI AGENT ARCHITECTURE)/   ← v3 lives inside v2
+│       ├── AI BRAIN (TOOL DECISION ENGINE)/engine.py
+│       ├── MAIN JARVIS LOOP (FULL SYSTEM)/jarvis_v3.py        ← v3 entry point
+│       ├── MEMORY SYSTEM (NEW)/memory.py
+│       ├── TOOL SYSTEM (REAL POWER CORE)/tools.py
+│       └── WAKE WORD SYSTEM (IMPROVED VERSION)/detection.py
+├── VERSION 4  AUTONOMOUS AI AGENT SYSTEM/
+│   ├── tools.py            ← entry point (run this)
 │   ├── planner.py
-│   ├── tools.py
 │   ├── memory.py
 │   └── toolsystem.py
-├── VERSION 5 MULTI-AGENT AI SYSTEM (JARVIS ORGANIZATION)/
-│   ├── orchestrator.py      ← main entry point
+├── VERSION 5  MULTI-AGENT AI SYSTEM (JARVIS ORGANIZATION)/
+│   ├── orchestrator.py     ← main entry point
 │   ├── manager.py
 │   ├── planner.py
 │   ├── research.py
 │   ├── executor.py
 │   ├── critic.py
 │   └── memory.py
-├── VERSION 6 PRODUCTION AI SYSTEM (JARVIS PLATFORM)/
+├── VERSION 6  PRODUCTION AI SYSTEM (JARVIS PLATFORM)/
 │   ├── backend/
-│   │   ├── main.py          ← FastAPI server
-│   │   ├── tools.py         ← tool registry
-│   │   └── memory.py        ← SQLite database
-│   ├── client/
-│   │   └── client.py        ← voice client
-│   ├── frontend/
-│   │   └── index.html       ← browser dashboard
+│   │   ├── main.py         ← FastAPI server
+│   │   ├── tools.py        ← tool registry
+│   │   └── memory.py       ← SQLite database
+│   ├── client/client.py    ← voice client
+│   ├── frontend/index.html ← browser dashboard
+│   ├── requirements.txt
 │   ├── run_backend.bat
 │   ├── run_client.bat
 │   └── run_frontend.bat
-├── jarvis_showcase.html     ← visual showcase page
+├── VERSION 7  INTELLIGENT AI PLATFORM (JARVIS NEXT-GEN).zip   ← packaged build (see v7)
+├── jarvis_showcase.html    ← visual showcase page
 ├── AGENTS.md
 └── README.md
 ```
@@ -282,7 +309,7 @@ export OPENAI_API_KEY="sk-your-key-here"
 
 | Technology | Purpose |
 |------------|---------|
-| **Python 3.14** | Core language |
+| **Python 3.10+** | Core language |
 | **OpenAI GPT-4o-mini** | AI brain & reasoning |
 | **FastAPI + Uvicorn** | Production API server (v6) |
 | **SQLite** | Persistent memory (v6) |
@@ -303,6 +330,7 @@ v3  ──►  Agent architecture + tool system
 v4  ──►  Autonomous planning + execution
 v5  ──►  Multi-agent organization
 v6  ──►  Production platform + REST API
+v7  ──►  Intelligent platform: function calling + streaming + web UI
 ```
 
 ---
